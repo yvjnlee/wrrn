@@ -52,15 +52,15 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>WRRN by NVRS Group.</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="flex col gap-3 m-2">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                  {/* <SidebarMenuButton asChild> */}
+                    <a href={item.url} className="flex items-center">
                       <item.icon />
                       <span>{item.title}</span>
                     </a>
-                  </SidebarMenuButton>
+                  {/* </SidebarMenuButton> */}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

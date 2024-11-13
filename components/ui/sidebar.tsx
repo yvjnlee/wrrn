@@ -435,7 +435,7 @@ const SidebarGroupLabel = React.forwardRef<
   const Comp = asChild ? Slot : "div"
 
   return (
-    <Comp
+    <div
       ref={ref}
       data-sidebar="group-label"
       className={cn(
@@ -456,7 +456,7 @@ const SidebarGroupAction = React.forwardRef<
   const Comp = asChild ? Slot : "button"
 
   return (
-    <Comp
+    <button
       ref={ref}
       data-sidebar="group-action"
       className={cn(
@@ -557,7 +557,7 @@ const SidebarMenuButton = React.forwardRef<
     const { isMobile, state } = useSidebar()
 
     const button = (
-      <Comp
+      <button
         ref={ref}
         data-sidebar="menu-button"
         data-size={size}
@@ -602,7 +602,7 @@ const SidebarMenuAction = React.forwardRef<
   const Comp = asChild ? Slot : "button"
 
   return (
-    <Comp
+    <button
       ref={ref}
       data-sidebar="menu-action"
       className={cn(
@@ -716,7 +716,7 @@ const SidebarMenuSubButton = React.forwardRef<
   const Comp = asChild ? Slot : "a"
 
   return (
-    <Comp
+    <a
       ref={ref}
       data-sidebar="menu-sub-button"
       data-size={size}

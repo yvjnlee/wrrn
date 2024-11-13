@@ -11,6 +11,7 @@ import "./globals.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -32,6 +33,9 @@ export default async function RootLayout({
   const {
       data: { user },
   } = await supabase.auth.getUser();
+
+  const cookieStore = await cookies()
+  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true"
   
   return (
     <html lang="en" className={GeistSans.className} suppressHydrationWarning>
@@ -43,7 +47,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <main className="min-h-screen flex flex-col items-center">
-            <SidebarProvider>
+            <SidebarProvider defaultOpen={defaultOpen}>
               <AppSidebar />
               <div className="flex-1 w-full flex flex-col gap-10 items-center">
                 <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
