@@ -117,7 +117,7 @@ const chartData = [
 
 export default function Demo() {
   return (
-    <Tabs defaultValue="account">
+    <Tabs defaultValue="overview">
       <h2 className="font-semibold text-2xl mb-4">Features</h2>
 
       <TabsList className="grid w-full grid-cols-5">
@@ -128,12 +128,16 @@ export default function Demo() {
         <TabsTrigger value="accounts">Accounts</TabsTrigger>
       </TabsList>
 
+      <TabsContent value="overview">
+        overview
+      </TabsContent>
+
       <TabsContent value="transactions">
-        
+        transactions
       </TabsContent>
 
       <TabsContent value="budgets">
-        
+        budgets
       </TabsContent>
 
       <TabsContent value="investments">
@@ -143,6 +147,10 @@ export default function Demo() {
           title="Net Worth"
           description="Track your net worth."
         />
+      </TabsContent>
+
+      <TabsContent value="accounts">
+        accounts
       </TabsContent>
     </Tabs>
   );

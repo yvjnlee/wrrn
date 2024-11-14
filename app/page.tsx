@@ -11,8 +11,6 @@ export default async function Index() {
         
         <Hero />
 
-        <Demo />
-
         {/* Steps Section */}
         <section className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="bg-secondary p-4">
@@ -56,6 +54,10 @@ export default async function Index() {
               <Link href="">Get Support</Link>
             </CardFooter>
           </Card>
+        </section>
+
+        <section className="mt-12 text-center">
+          <Demo />
         </section>
 
         {/* Social Media Section */}

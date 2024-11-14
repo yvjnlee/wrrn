@@ -1,7 +1,9 @@
+import { HeaderInvestment } from "./header-investments";
+
 export default function Page() {
     return (
         <>
-            investments
+            <HeaderInvestment />
         </>
     );
 }

@@ -1,7 +1,9 @@
-export default function Page() {
+import { HeaderOverview } from "./header-overview";
+
+export default function OverviewPage() {
     return (
         <>
-            overview
+            <HeaderOverview />
         </>
     );
 }

@@ -15,7 +15,9 @@ export default async function Layout({
         <>
             {user && (
                 <>
-                    {children}
+                    <div className="w-full">
+                        {children}
+                    </div>
                 </>
             )}
         </>
