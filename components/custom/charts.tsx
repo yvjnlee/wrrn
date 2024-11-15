@@ -33,55 +33,53 @@ interface PieChartProps {
 
 export function BasePieChart({ data, config, title, description }: PieChartProps) {
   return (
-    <Card>
-      <CardContent>
-        <div className="mx-auto aspect-square max-h-[250px]">
-          <PieChart width={250} height={250}>
-            <ChartTooltip />
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              innerRadius={60}
-              strokeWidth={3}
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fillColor} />
-              ))}
-              <Label
-                content={({ viewBox }) => {
-                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                    return (
-                      <text
+    <>
+      <div className="mx-auto aspect-square max-h-[250px]">
+        <PieChart width={250} height={250}>
+          <ChartTooltip />
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            innerRadius={60}
+            strokeWidth={2}
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.fillColor} />
+            ))}
+            <Label
+              content={({ viewBox }) => {
+                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                  return (
+                    <text
+                      x={viewBox.cx}
+                      y={viewBox.cy}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                    >
+                      <tspan
                         x={viewBox.cx}
                         y={viewBox.cy}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
+                        className="fill-foreground text-3xl font-bold"
                       >
-                        <tspan
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          className="fill-foreground text-3xl font-bold"
-                        >
-                          {title}
-                        </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 24}
-                          className="fill-muted-foreground"
-                        >
-                          {description}
-                        </tspan>
-                      </text>
-                    );
-                  }
-                }}
-              />
-            </Pie>
-          </PieChart>
-        </div>
-      </CardContent>
-    </Card>
+                        {title}
+                      </tspan>
+                      <tspan
+                        x={viewBox.cx}
+                        y={(viewBox.cy || 0) + 24}
+                        className="fill-muted-foreground"
+                      >
+                        {description}
+                      </tspan>
+                    </text>
+                  );
+                }
+              }}
+            />
+          </Pie>
+        </PieChart>
+      </div>
+    </>
   );
 }
 

@@ -4,6 +4,8 @@ export default function Page() {
     return (
         <>
             <HeaderInvestment />
+
+            Coming Soon...
         </>
     );
 }
