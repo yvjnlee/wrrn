@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis } from "recharts";
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,10 +15,77 @@ interface DataTrendChartProps {
     data: ChartDataItem[];
     config: ChartConfig;
     title: string;
-    description: string;
+    description?: string;
 }
 
-export function DataTrendChart({ data, config, title, description }: DataTrendChartProps) {
+interface PieChartItem {
+  name: string;
+  value: number;
+  fillColor: string;
+}
+
+interface PieChartProps {
+  data: PieChartItem[];
+  config: ChartConfig;
+  title: string;
+  description?: string;
+}
+
+export function BasePieChart({ data, config, title, description }: PieChartProps) {
+  return (
+    <Card>
+      <CardContent>
+        <div className="mx-auto aspect-square max-h-[250px]">
+          <PieChart width={250} height={250}>
+            <ChartTooltip />
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={60}
+              strokeWidth={3}
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fillColor} />
+              ))}
+              <Label
+                content={({ viewBox }) => {
+                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                    return (
+                      <text
+                        x={viewBox.cx}
+                        y={viewBox.cy}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                      >
+                        <tspan
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          className="fill-foreground text-3xl font-bold"
+                        >
+                          {title}
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) + 24}
+                          className="fill-muted-foreground"
+                        >
+                          {description}
+                        </tspan>
+                      </text>
+                    );
+                  }
+                }}
+              />
+            </Pie>
+          </PieChart>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function BaseAreaChart({ data, config, title, description }: DataTrendChartProps) {
   const [timeRange, setTimeRange] = React.useState("90d");
 
   const filteredData = data.filter((item) => {

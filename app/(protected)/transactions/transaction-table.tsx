@@ -33,67 +33,46 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Transaction } from "../types";
-import { getTransactions } from "./actions";
 import { TransactionDrawer } from "./transaction-drawer";
 
-export function TransactionTable() {
-  const [data, setData] = React.useState<Transaction[] | null>(null);
+interface TransactionTableProps {
+  data: Transaction[] | null;
+}
+
+export function TransactionTable({ data }: TransactionTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [isDrawerOpen, setIsDrawerOpen] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(true);
-  const [error, setError] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    const fetchTransactions = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const transactions = await getTransactions();
-        setData(transactions || []);
-      } catch {
-        setError("Error fetching transactions.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTransactions();
-  }, []);
 
   const columns: ColumnDef<Transaction>[] = [
     {
-        id: "select",
-        header: ({ table }) => (
-            <div className="flex justify-center items-center">
-            <Checkbox
-                checked={
-                table.getIsAllPageRowsSelected() ||
-                (table.getIsSomePageRowsSelected() && "indeterminate")
-                }
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Select all"
-            />
-            </div>
-        ),
-        cell: ({ row }) => (
-            <div className="flex justify-center items-center h-full">
-            <Checkbox
-                checked={row.getIsSelected()}
-                onClick={(e) => e.stopPropagation()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
-            />
-            </div>
-        ),
-        enableSorting: false,
-        enableHiding: false,
+      id: "select",
+      header: ({ table }) => (
+        <div className="flex justify-center items-center">
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex justify-center items-center h-full">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onClick={(e) => e.stopPropagation()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
     },
     {
       accessorKey: "date",
@@ -122,21 +101,16 @@ export function TransactionTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="truncate ml-4">{row.getValue("description")}</div>
-      ),
-      enableSorting: true, // Enable sorting on the description column
+      cell: ({ row }) => <div className="truncate ml-4">{row.getValue("description")}</div>,
+      enableSorting: true,
     },
     {
       accessorKey: "type",
       header: "Type",
       cell: ({ row }) => {
-        const textColor =
-          row.getValue("type") === "INCOME" ? "text-green-600" : "text-red-600";
+        const textColor = row.getValue("type") === "INCOME" ? "text-green-600" : "text-red-600";
         return (
-          <div
-            className={`capitalize rounded-md inline-block bg-opacity-90 ${textColor}`}
-          >
+          <div className={`capitalize rounded-md inline-block bg-opacity-90 ${textColor}`}>
             {String(row.getValue("type")).toLowerCase()}
           </div>
         );
@@ -155,7 +129,7 @@ export function TransactionTable() {
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="text-left" // Ensures the header is right-aligned
+          className="text-left"
         >
           Amount
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -171,7 +145,7 @@ export function TransactionTable() {
       },
       enableSorting: true,
     },
-  ];   
+  ];
 
   const table = useReactTable({
     data: data || [],
@@ -192,18 +166,13 @@ export function TransactionTable() {
     },
   });
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
-
   return (
     <>
       <div className="w-full">
         <div className="flex items-center py-4">
           <Input
             placeholder="Filter transactions..."
-            value={
-              (table.getColumn("description")?.getFilterValue() as string) ?? ""
-            }
+            value={(table.getColumn("description")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("description")?.setFilterValue(event.target.value)
             }
@@ -224,9 +193,7 @@ export function TransactionTable() {
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
+                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
@@ -243,10 +210,7 @@ export function TransactionTable() {
                     <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -257,8 +221,8 @@ export function TransactionTable() {
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
-                    onClick={() => setIsDrawerOpen(row.original.id)} // Opens the drawer on row click
-                    className="cursor-pointer" // Adds a cursor pointer for visual indication
+                    onClick={() => setIsDrawerOpen(row.original.id)}
+                    className="cursor-pointer"
                     data-state={row.getIsSelected() && "selected"}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -266,12 +230,9 @@ export function TransactionTable() {
                         key={cell.id}
                         onClick={
                           cell.column.id === "select" ? (e) => e.stopPropagation() : undefined
-                        } // Prevents drawer opening on "select" cell
+                        }
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -312,12 +273,7 @@ export function TransactionTable() {
         </div>
       </div>
 
-      {/* Drawer Component */}
-      <TransactionDrawer 
-        isDrawerOpen={isDrawerOpen}
-        setIsDrawerOpen={setIsDrawerOpen}
-      />
-       
+      <TransactionDrawer isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} />
     </>
   );
 }

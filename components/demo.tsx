@@ -5,7 +5,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { ChartConfig } from "./ui/chart"
-import { DataTrendChart } from "./custom/charts"
+import { BaseAreaChart } from "./custom/charts"
 
 const chartData = [
     { date: "2024-04-01", desktop: 222, mobile: 150 },
@@ -141,7 +141,7 @@ export default function Demo() {
       </TabsContent>
 
       <TabsContent value="investments">
-        <DataTrendChart
+        <BaseAreaChart
           data={chartData}
           config={chartConfig}
           title="Net Worth"

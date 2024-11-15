@@ -12,9 +12,9 @@ export interface Budget {
     id?: UUID;
     user_id?: UUID;
     account_id?: UUID;
+    name?: string;
     category?: string;
     amount?: number;
-    period?: string;
     start_date?: string;
     end_date?: string;
     spent?: number;
