@@ -42,7 +42,7 @@ export function BudgetItem({ budget }: BudgetItemProps) {
   // Chart data for BasePieChart
   const chartData = [
     { name: "Spent", value: spent, fillColor: "green" },
-    { name: "Remaining", value: remaining, fillColor: "black" },
+    { name: "Remaining", value: remaining, fillColor: "#171717" },
   ];
 
   return (
@@ -67,7 +67,7 @@ export function BudgetItem({ budget }: BudgetItemProps) {
             <BasePieChart
               data={chartData}
               title={`${percentageSpent}%`}
-              description="Spent"
+              description="Complete"
             />
           </CardContent>
 
@@ -97,6 +97,7 @@ export function BudgetItem({ budget }: BudgetItemProps) {
 
       {/* Budget Drawer */}
       <BudgetDrawer
+        budget={budget}
         isDrawerOpen={isDrawerOpen}
         setIsDrawerOpen={setIsDrawerOpen}
       />

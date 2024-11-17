@@ -26,6 +26,28 @@ export const getBudgetById = async (budgetId: string): Promise<Budget | null> =>
 };
 
 // Get all budgets for the current user
+export const getAccountBudgets = async (accountId: string): Promise<Budget[] | null> => {
+  const supabase = await createClient();
+  const {
+      data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from('budgets')
+    .select('*')
+    .eq('user_id', user?.id)
+    .eq('account_id', accountId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching budgets:', error.message);
+    return null;
+  }
+
+  return data as Budget[]; // Return the list of budgets for the user
+};
+
+// Get all budgets for the current user
 export const getBudgets = async (): Promise<Budget[] | null> => {
     const supabase = await createClient();
     const {

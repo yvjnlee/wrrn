@@ -49,6 +49,9 @@ export const getAccounts = async (): Promise<Account[] | null> => {
 // Insert a new account
 export const insertAccount = async (newAccount: Account) => {
     const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
 
     // Insert the new account
     const { error } = await supabase
@@ -65,13 +68,16 @@ export const insertAccount = async (newAccount: Account) => {
 };
 
 // Update an existing account
-export const updateAccount = async (id: string, updatedFields: Partial<Account>) => {
+export const updateAccount = async (updatedFields: Partial<Account>) => {
     const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
 
     const { error } = await supabase
       .from('accounts')
       .update(updatedFields)
-      .eq('id', id);
+      .eq('user_id', user?.id);
   
     if (error) {
       console.error('Error updating account:', error.message);
@@ -83,13 +89,16 @@ export const updateAccount = async (id: string, updatedFields: Partial<Account>)
 };
 
 // Delete an account by ID
-export const deleteAccount = async (id: string) => {
+export const deleteAccount = async () => {
     const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
 
     const { error } = await supabase
       .from('accounts')
       .delete()
-      .eq('id', id);
+      .eq('id', user?.id);
   
     if (error) {
       console.error('Error deleting account:', error.message);

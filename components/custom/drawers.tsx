@@ -1,4 +1,3 @@
-// src/components/BasicDrawer.tsx
 import React, { ReactNode } from "react";
 import {
   Drawer,
@@ -37,15 +36,22 @@ export function BasicDrawer({
           {description && <DrawerDescription>{description}</DrawerDescription>}
         </DrawerHeader>
 
-        {children && <div className="p-4">{children}</div>}
+        {children && <div className="p-4 overflow-y-auto">{children}</div>}
 
         <DrawerFooter className="flex gap-2 justify-end">
           {onSave && (
-            <Button onClick={onSave}>
+            <Button
+              onClick={onSave}
+              className="py-1 px-3 text-sm" // Smaller padding and font size
+            >
               Save
             </Button>
           )}
-          <Button variant="outline" onClick={onClose}>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="py-1 px-3 text-sm" // Match size with Save button
+          >
             Cancel
           </Button>
         </DrawerFooter>

@@ -24,6 +24,27 @@ export const getTransactionById = async (transactionId: string): Promise<Transac
     return data as Transaction; // Return the transaction if found
 };
 
+export const getAccountTransactions = async (accountId: string): Promise<Transaction[] | null> => {
+  const supabase = await createClient();
+  const {
+      data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('user_id', user?.id)
+    .eq('account_id', accountId)
+    .order('date', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching transactions:', error.message);
+    return null; // Return null to indicate an error occurred
+  }
+
+  return data as Transaction[]; // Return the list of transactions for the user
+};
+
 export const getTransactions = async (): Promise<Transaction[] | null> => {
     const supabase = await createClient();
     const {

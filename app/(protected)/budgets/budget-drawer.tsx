@@ -1,45 +1,61 @@
+"use client";
+
 import React, { useState, useEffect, ChangeEvent, useMemo } from "react";
-import { Budget } from "../types";
-import { getBudgetById, updateBudget } from "./actions";
+import { Account, Budget } from "../types";
+import { updateBudget } from "./actions";
 import { Input } from "@/components/ui/input";
 import { BasicDrawer } from "@/components/custom/drawers";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { BasePieChart } from "@/components/custom/charts";
+import { getAccounts } from "../accounts/actions";
 
 interface BudgetDrawerProps {
+  budget: Budget;
   isDrawerOpen: string | null;
   setIsDrawerOpen: (isOpen: string | null) => void;
 }
 
 export function BudgetDrawer({
+  budget,
   isDrawerOpen,
   setIsDrawerOpen,
 }: BudgetDrawerProps) {
-  const [budget, setBudget] = useState<Partial<Budget> | null>(null);
-  const [contribute, setContribute] = useState<number>(0); // Contribution amount
-  const [isLoading, setIsLoading] = useState(false);
+  const [formState, setFormState] = useState<Partial<Budget>>(budget);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(
+    budget.account_id || null
+  );
+  const [contribute, setContribute] = useState<number>(0);
 
   useEffect(() => {
-    const fetchBudget = async () => {
-      setIsLoading(true);
-      if (isDrawerOpen) {
-        const data = await getBudgetById(isDrawerOpen);
-        setBudget(data || {});
-      } else {
-        setBudget(null);
+    const fetchAccounts = async () => {
+      try {
+        const data = await getAccounts();
+        setAccounts(data || []);
+      } catch (error) {
+        console.error("Failed to fetch accounts:", error);
       }
-      setIsLoading(false);
     };
 
-    fetchBudget();
-  }, [isDrawerOpen]);
+    if (budget?.user_id) {
+      fetchAccounts();
+    }
+  }, [budget?.user_id]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setBudget((prev) => ({
+    setFormState((prev) => ({
       ...prev,
       [name]: name === "amount" ? parseFloat(value) : value,
+    }));
+  };
+
+  const handleAccountChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedAccount(e.target.value);
+    setFormState((prev) => ({
+      ...prev,
+      account_id: e.target.value,
     }));
   };
 
@@ -50,113 +66,133 @@ export function BudgetDrawer({
   const handleSaveChanges = async () => {
     if (budget?.id) {
       const updatedBudget = {
-        ...budget,
-        spent: (budget.spent || 0) + contribute, // Add contribution to spent
+        ...formState,
+        spent: Math.max((budget.spent || 0) + contribute, 0), // Ensure spent doesn't go below 0
       };
-      await updateBudget(budget.id, updatedBudget);
-      setIsDrawerOpen(null);
-      window.location.reload();
+      try {
+        await updateBudget(budget.id, updatedBudget);
+        setIsDrawerOpen(null);
+        alert("Budget updated successfully!");
+        window.location.reload();
+      } catch (error) {
+        console.error("Failed to save changes:", error);
+      }
     }
   };
 
-  const chartData = [
-    { name: "Spent", value: Number(budget?.spent || 0), fillColor: "#f87171" },
-    { name: "Remaining", value: Math.max(Number(budget?.amount || 0) - Number(budget?.spent || 0), 0), fillColor: "#4ade80" },
-  ];
+  const { name, category, amount = 0, spent = 0, start_date, end_date } = formState;
 
+  const remaining = useMemo(() => Math.max(amount - spent, 0), [amount, spent]);
   const percentageSpent = useMemo(() => {
-    if (!budget?.amount || budget.amount === 0) return 0;
-    return ((Number(budget.spent || 0) / Number(budget.amount)) * 100).toFixed(2);
-  }, [budget]);
+    if (!amount) return "0";
+    return Math.min((spent / amount) * 100, 100).toFixed(1);
+  }, [amount, spent]);
+
+  const chartData = [
+    { name: "Spent", value: spent, fillColor: "green" },
+    { name: "Remaining", value: remaining, fillColor: "#171717" },
+  ];
 
   return (
     <BasicDrawer
       isOpen={!!isDrawerOpen}
       onClose={() => setIsDrawerOpen(null)}
-      title={`Edit ${budget?.name || "Budget"}`}
+      title={`Edit ${name || "Budget"}`}
       description="Modify the budget details as needed."
       onSave={handleSaveChanges}
     >
-      {isLoading ? (
-        <div className="flex justify-center items-center p-4">
-          <span className="ml-2">Loading...</span>
-        </div>
-      ) : (
-        <div className="p-4 space-y-6 md:grid md:grid-cols-2 md:gap-6">
-          {/* Form Fields */}
-          <div className="space-y-4">
-            <div>
-              <Label className="text-sm font-semibold">Budget Name</Label>
-              <Input
-                name="name"
-                placeholder="Budget Name"
-                value={budget?.name || ""}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <Label className="text-sm font-semibold">Category</Label>
-              <Input
-                name="category"
-                placeholder="Category"
-                value={budget?.category || ""}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <Label className="text-sm font-semibold">Total Amount</Label>
-              <Input
-                name="amount"
-                placeholder="Amount"
-                type="number"
-                value={budget?.amount?.toString() || ""}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <Label className="text-sm font-semibold">Start Date</Label>
-              <Input
-                name="start_date"
-                placeholder="Start Date"
-                type="date"
-                value={budget?.start_date || ""}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <Label className="text-sm font-semibold">End Date</Label>
-              <Input
-                name="end_date"
-                placeholder="End Date"
-                type="date"
-                value={budget?.end_date || ""}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <Label className="text-sm font-semibold">Contribute</Label>
-              <Input
-                name="contribute"
-                placeholder="Contribute Amount"
-                type="number"
-                value={contribute.toString()}
-                onChange={handleContributeChange}
-              />
-            </div>
-          </div>
+      <div className="p-4 space-y-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pie Chart */}
+        <Card className="flex justify-center items-center p-4">
+          <CardContent>
+            <BasePieChart
+              data={chartData}
+              title={`${percentageSpent}%`}
+              description="Spent"
+            />
+          </CardContent>
+        </Card>
 
-          {/* Pie Chart */}
-          <Card className="flex justify-center items-center">
-            <CardContent>
-              <BasePieChart
-                data={chartData}
-                title={`${percentageSpent}% Spent`}
-                description={`Remaining: $${Math.max(Number(budget?.amount || 0) - Number(budget?.spent || 0), 0)}`}
-              />
-            </CardContent>
-          </Card>
+        {/* Form Fields */}
+        <div className="space-y-4">
+          <div>
+            <Label className="text-sm font-semibold">Budget Name</Label>
+            <Input
+              name="name"
+              placeholder="Budget Name"
+              value={formState?.name || ""}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-semibold">Linked Account</Label>
+            <select
+              name="account_id"
+              value={selectedAccount || ""}
+              onChange={handleAccountChange}
+              className="border rounded p-2 w-full text-sm"
+            >
+              <option value="" disabled>
+                Select Account
+              </option>
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.account_name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label className="text-sm font-semibold">Category</Label>
+            <Input
+              name="category"
+              placeholder="Category"
+              value={formState?.category || ""}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-semibold">Total Amount</Label>
+            <Input
+              name="amount"
+              placeholder="Amount"
+              type="number"
+              value={formState?.amount?.toString() || ""}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-semibold">Start Date</Label>
+            <Input
+              name="start_date"
+              placeholder="Start Date"
+              type="date"
+              value={formState?.start_date || ""}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-semibold">End Date</Label>
+            <Input
+              name="end_date"
+              placeholder="End Date"
+              type="date"
+              value={formState?.end_date || ""}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-semibold">Allocate Funds</Label>
+            <Input
+              name="contribute"
+              placeholder="Allocate Amount"
+              type="text"
+              value={contribute.toString()}
+              onChange={handleContributeChange}
+            />
+          </div>
         </div>
-      )}
+      </div>
     </BasicDrawer>
   );
 }
