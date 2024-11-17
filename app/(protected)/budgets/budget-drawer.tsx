@@ -1,12 +1,11 @@
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, useMemo } from "react";
 import { Budget } from "../types";
 import { getBudgetById, updateBudget } from "./actions";
 import { Input } from "@/components/ui/input";
 import { BasicDrawer } from "@/components/custom/drawers";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { BasePieChart } from "@/components/custom/charts";
-import { ChartConfig } from "@/components/ui/chart";
 
 interface BudgetDrawerProps {
   isDrawerOpen: string | null;
@@ -45,7 +44,7 @@ export function BudgetDrawer({
   };
 
   const handleContributeChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setContribute(parseFloat(e.target.value));
+    setContribute(parseFloat(e.target.value) || 0);
   };
 
   const handleSaveChanges = async () => {
@@ -60,24 +59,15 @@ export function BudgetDrawer({
     }
   };
 
-  const chartConfig = {
-    amount: {
-      label: "Amount",
-    },
-    saved: {
-      label: "Saved",
-      color: "hsl(var(--chart-1))",
-    },
-    remaining: {
-      label: "Remaining",
-      color: "hsl(var(--chart-2))",
-    },
-  } satisfies ChartConfig
-
   const chartData = [
-    { name: "Saved", value: Number(budget?.spent), fillColor: "white" },
-    { name: "Remaining", value: Number(budget?.amount) - Number(budget?.spent), fillColor: "black" },
-  ];  
+    { name: "Spent", value: Number(budget?.spent || 0), fillColor: "#f87171" },
+    { name: "Remaining", value: Math.max(Number(budget?.amount || 0) - Number(budget?.spent || 0), 0), fillColor: "#4ade80" },
+  ];
+
+  const percentageSpent = useMemo(() => {
+    if (!budget?.amount || budget.amount === 0) return 0;
+    return ((Number(budget.spent || 0) / Number(budget.amount)) * 100).toFixed(2);
+  }, [budget]);
 
   return (
     <BasicDrawer
@@ -92,8 +82,8 @@ export function BudgetDrawer({
           <span className="ml-2">Loading...</span>
         </div>
       ) : (
-        <div className="p-4 space-y-4 md:grid md:grid-cols-2 md:gap-4">
-          {/* Left Side - Form Fields */}
+        <div className="p-4 space-y-6 md:grid md:grid-cols-2 md:gap-6">
+          {/* Form Fields */}
           <div className="space-y-4">
             <div>
               <Label className="text-sm font-semibold">Budget Name</Label>
@@ -144,16 +134,6 @@ export function BudgetDrawer({
               />
             </div>
             <div>
-              <Label className="text-sm font-semibold">Spent</Label>
-              <Input
-                name="spent"
-                placeholder="Spent"
-                type="number"
-                value={budget?.spent?.toString() || ""}
-                readOnly
-              />
-            </div>
-            <div>
               <Label className="text-sm font-semibold">Contribute</Label>
               <Input
                 name="contribute"
@@ -165,13 +145,13 @@ export function BudgetDrawer({
             </div>
           </div>
 
-          {/* Right Side - Chart Placeholder */}
+          {/* Pie Chart */}
           <Card className="flex justify-center items-center">
             <CardContent>
-              <BasePieChart 
-                data={ chartData }
-                config={ chartConfig }
-                title={ `${Number(budget?.spent)*100/Number(budget?.amount)}%` }
+              <BasePieChart
+                data={chartData}
+                title={`${percentageSpent}% Spent`}
+                description={`Remaining: $${Math.max(Number(budget?.amount || 0) - Number(budget?.spent || 0), 0)}`}
               />
             </CardContent>
           </Card>

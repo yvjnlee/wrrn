@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import * as React from "react";
 import { Area, AreaChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis } from "recharts";
@@ -24,62 +24,65 @@ interface PieChartItem {
   fillColor: string;
 }
 
-interface PieChartProps {
+interface BasePieChartProps {
   data: PieChartItem[];
-  config: ChartConfig;
-  title: string;
-  description?: string;
+  title: string; // Center text (e.g., percentage or label)
+  description?: string; // Optional subtitle
 }
 
-export function BasePieChart({ data, config, title, description }: PieChartProps) {
+export function BasePieChart({ data, title, description }: BasePieChartProps) {
+  if (!data || data.length === 0) {
+    console.error("BasePieChart: No data provided.");
+    return null;
+  }
+
   return (
-    <>
-      <div className="mx-auto aspect-square max-h-[250px]">
-        <PieChart width={250} height={250}>
-          <ChartTooltip />
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            innerRadius={60}
-            strokeWidth={2}
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.fillColor} />
-            ))}
-            <Label
-              content={({ viewBox }) => {
-                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                  return (
-                    <text
+    <PieChart width={250} height={250}>
+      <Pie
+        data={data}
+        dataKey="value"
+        nameKey="name"
+        innerRadius={60}
+        outerRadius={100}
+        stroke="transparent"
+      >
+        {data.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={entry.fillColor} />
+        ))}
+        <Label
+          content={({ viewBox }) => {
+            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+              return (
+                <text
+                  x={viewBox.cx}
+                  y={viewBox.cy}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
+                  <tspan
+                    x={viewBox.cx}
+                    y={viewBox.cy}
+                    className="fill-foreground text-3xl font-bold"
+                  >
+                    {title}
+                  </tspan>
+                  {description && (
+                    <tspan
                       x={viewBox.cx}
-                      y={viewBox.cy}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
+                      y={(viewBox.cy || 0) + 20}
+                      className="fill-muted-foreground text-sm"
                     >
-                      <tspan
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        className="fill-foreground text-3xl font-bold"
-                      >
-                        {title}
-                      </tspan>
-                      <tspan
-                        x={viewBox.cx}
-                        y={(viewBox.cy || 0) + 24}
-                        className="fill-muted-foreground"
-                      >
-                        {description}
-                      </tspan>
-                    </text>
-                  );
-                }
-              }}
-            />
-          </Pie>
-        </PieChart>
-      </div>
-    </>
+                      {description}
+                    </tspan>
+                  )}
+                </text>
+              );
+            }
+            return null;
+          }}
+        />
+      </Pie>
+    </PieChart>
   );
 }
 
@@ -98,12 +101,12 @@ export function BaseAreaChart({ data, config, title, description }: DataTrendCha
   return (
     <Card>
         <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
-        <div className="grid flex-1 gap-1 text-center sm:text-left">
-            <CardTitle>{ title }</CardTitle>
-            <CardDescription>
-            { description }
-            </CardDescription>
-        </div>
+          <div className="grid flex-1 gap-1 text-center sm:text-left">
+              <CardTitle>{ title }</CardTitle>
+              <CardDescription>
+              { description }
+              </CardDescription>
+          </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger
             className="w-[160px] rounded-lg sm:ml-auto"
@@ -125,83 +128,83 @@ export function BaseAreaChart({ data, config, title, description }: DataTrendCha
         </Select>
         </CardHeader>
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        <ChartContainer
-            config={config}
-            className="aspect-auto h-[250px] w-full"
-        >
-            <AreaChart data={filteredData}>
-            <defs>
-                <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                    offset="5%"
-                    stopColor="var(--color-desktop)"
-                    stopOpacity={0.8}
-                />
-                <stop
-                    offset="95%"
-                    stopColor="var(--color-desktop)"
-                    stopOpacity={0.1}
-                />
-                </linearGradient>
-                <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                    offset="5%"
-                    stopColor="var(--color-mobile)"
-                    stopOpacity={0.8}
-                />
-                <stop
-                    offset="95%"
-                    stopColor="var(--color-mobile)"
-                    stopOpacity={0.1}
-                />
-                </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={32}
-                tickFormatter={(value) => {
-                const date = new Date(value)
-                return date.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                })
-                }}
-            />
-            <ChartTooltip
-                cursor={false}
-                content={
-                <ChartTooltipContent
-                    labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                    })
-                    }}
-                    indicator="dot"
-                />
-                }
-            />
-            <Area
-                dataKey="mobile"
-                type="natural"
-                fill="url(#fillMobile)"
-                stroke="var(--color-mobile)"
-                stackId="a"
-            />
-            <Area
-                dataKey="desktop"
-                type="natural"
-                fill="url(#fillDesktop)"
-                stroke="var(--color-desktop)"
-                stackId="a"
-            />
-            <ChartLegend content={<ChartLegendContent />} />
-            </AreaChart>
-        </ChartContainer>
+          <ChartContainer
+              config={config}
+              className="aspect-auto h-[250px] w-full"
+          >
+              <AreaChart data={filteredData}>
+              <defs>
+                  <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                      offset="5%"
+                      stopColor="var(--color-desktop)"
+                      stopOpacity={0.8}
+                  />
+                  <stop
+                      offset="95%"
+                      stopColor="var(--color-desktop)"
+                      stopOpacity={0.1}
+                  />
+                  </linearGradient>
+                  <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                      offset="5%"
+                      stopColor="var(--color-mobile)"
+                      stopOpacity={0.8}
+                  />
+                  <stop
+                      offset="95%"
+                      stopColor="var(--color-mobile)"
+                      stopOpacity={0.1}
+                  />
+                  </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={32}
+                  tickFormatter={(value) => {
+                  const date = new Date(value)
+                  return date.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                  })
+                  }}
+              />
+              <ChartTooltip
+                  cursor={false}
+                  content={
+                  <ChartTooltipContent
+                      labelFormatter={(value) => {
+                      return new Date(value).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                      })
+                      }}
+                      indicator="dot"
+                  />
+                  }
+              />
+              <Area
+                  dataKey="mobile"
+                  type="natural"
+                  fill="url(#fillMobile)"
+                  stroke="var(--color-mobile)"
+                  stackId="a"
+              />
+              <Area
+                  dataKey="desktop"
+                  type="natural"
+                  fill="url(#fillDesktop)"
+                  stroke="var(--color-desktop)"
+                  stackId="a"
+              />
+              <ChartLegend content={<ChartLegendContent />} />
+              </AreaChart>
+          </ChartContainer>
         </CardContent>
     </Card>
   );

@@ -1,62 +1,104 @@
-"use client"
+"use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { BasePieChart } from "@/components/custom/charts";
 import { Budget } from "../types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { BudgetDrawer } from "./budget-drawer";
+import { Badge } from "@/components/ui/badge";
 
 interface BudgetItemProps {
   budget: Budget;
 }
 
 export function BudgetItem({ budget }: BudgetItemProps) {
+  const {
+    id,
+    name,
+    category,
+    amount = 0,
+    spent = 0,
+    start_date,
+    end_date,
+  } = budget;
+
+  // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState<string | null>(null);
 
-  const handleCardClick = () => {
-    setIsDrawerOpen(budget.id || null); // Set the budget ID when opening the drawer
-  };
+  // Calculate remaining budget and percentage spent
+  const remaining = useMemo(() => Math.max(amount - spent, 0), [amount, spent]);
+  const percentageSpent = useMemo(() => {
+    if (!amount) return "0";
+    return Math.min((spent / amount) * 100, 100).toFixed(1);
+  }, [amount, spent]);
+
+  // Chart data for BasePieChart
+  const chartData = [
+    { name: "Spent", value: spent, fillColor: "green" },
+    { name: "Remaining", value: remaining, fillColor: "black" },
+  ];
 
   return (
     <>
-      <Card className="shadow-sm cursor-pointer" onClick={handleCardClick}>
-        <CardHeader>
-          <CardTitle>{budget.name || "Budget"}</CardTitle>
-          <CardDescription>Account: {budget.account_id || "N/A"}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span>Amount:</span>
-            <Badge variant="outline">${budget.amount?.toLocaleString() || "0.00"}</Badge>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>Spent:</span>
-            <Badge variant="outline">${budget.spent?.toLocaleString() || "0.00"}</Badge>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>Remaining:</span>
-            <Badge variant="outline">
-              {budget.amount && budget.spent !== undefined ? (
-                (budget.amount - budget.spent) <= 0 ? (
+      <div onClick={() => setIsDrawerOpen(id || null)} className="cursor-pointer">
+        <Card className="flex flex-col h-full">
+          {/* Card Header */}
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg font-medium">
+                {name || "Unnamed Budget"}
+              </CardTitle>
+              <Badge variant="outline">{category || "Uncategorized"}</Badge>
+            </div>
+            <CardDescription className="text-xs text-muted-foreground">
+              {start_date || "N/A"} - {end_date || "N/A"}
+            </CardDescription>
+          </CardHeader>
+
+          {/* Card Content with BasePieChart */}
+          <CardContent className="flex justify-center items-center">
+            <BasePieChart
+              data={chartData}
+              title={`${percentageSpent}%`}
+              description="Spent"
+            />
+          </CardContent>
+
+          {/* Card Footer */}
+          <CardFooter className="grid grid-cols-2 gap-2 text-sm">
+            <div className="flex justify-between">
+              <span>Total:</span>
+              <Badge variant="outline">${amount  || "0.00"}</Badge>
+            </div>
+            <div className="flex justify-between">
+              <span>Spent:</span>
+              <Badge variant="outline">${spent  || "0.00"}</Badge>
+            </div>
+            <div className="flex justify-between col-span-2">
+              <span>Remaining:</span>
+              <Badge variant="outline">
+                {remaining <= 0 ? (
                   <span className="text-green-600">Completed</span>
                 ) : (
-                  `$${(budget.amount - budget.spent).toLocaleString()}`
-                )
-              ) : "N/A"}
-            </Badge>
-          </div>
-          <div className="text-sm text-gray-600">
-            <p>Category: {budget.category || "Uncategorized"}</p>
-            <p>Start Date: {budget.start_date || "N/A"}</p>
-            <p>End Date: {budget.end_date || "N/A"}</p>
-          </div>
-        </CardContent>
-      </Card>
+                  `$${remaining }`
+                )}
+              </Badge>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
 
       {/* Budget Drawer */}
       <BudgetDrawer
-        isDrawerOpen={isDrawerOpen} // Open only if the current budget's ID matches
-        setIsDrawerOpen={() => setIsDrawerOpen(null)} // Close by setting to null
+        isDrawerOpen={isDrawerOpen}
+        setIsDrawerOpen={setIsDrawerOpen}
       />
     </>
   );
