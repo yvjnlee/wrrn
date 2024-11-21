@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Account, Budget, Transaction } from "../types";
 import { BasicDrawer } from "@/components/custom/drawers";
 import { BudgetDrawer } from "../budgets/budget-drawer";

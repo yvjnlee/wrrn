@@ -10,9 +10,13 @@ import Papa from "papaparse";
 import { insertTransaction } from "./actions";
 import { Account, Transaction } from "../types";
 import { createClient } from "@/utils/supabase/client";
-import { parseTransactionData } from "./utils";
-import { getAccounts, updateAccount } from "../accounts/actions";
+import { getAccounts } from "../accounts/actions";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 
+/*
+ * @To-Do: try to use service workers or something when inserting data so the user isnt stuck on the page
+ */
 export function UploadCsv() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
@@ -21,6 +25,17 @@ export function UploadCsv() {
   const [showToast, setShowToast] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
+
+  // CSV preview and mapping
+  const [rawPreviewRow, setRawPreviewRow] = useState<string[]>([]);
+  const [columnMapping, setColumnMapping] = useState<Record<string, number>>({
+    date: -1,
+    description: -1,
+    amount: -1,
+    income: -1,
+    expense: -1,
+  });
+  const [transactionMethod, setTransactionMethod] = useState<"amount" | "income-expense">("amount");
 
   useEffect(() => {
     const fetchUserAccounts = async () => {
@@ -31,71 +46,93 @@ export function UploadCsv() {
   }, []);
 
   const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
-    setFile(e.target.files?.[0] || null);
+    const uploadedFile = e.target.files?.[0] || null;
+    setFile(uploadedFile);
+
+    if (uploadedFile) {
+      Papa.parse(uploadedFile, {
+        header: false,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const data = results.data as string[][];
+          if (data.length > 0) setRawPreviewRow(data[0]); // Use the first row as a preview
+        },
+      });
+    }
   };
 
   const handleUpload = async () => {
-    if (!file || !selectedAccount) {
-      console.warn("Please select a file and an account to upload.");
-      return;
-    }
-
-    setIsLoading(true); // Start loading state
-
+    if (!file || !selectedAccount) return;
+  
     const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
+  
+    setIsLoading(true);
+  
     Papa.parse(file, {
-      header: true,
+      header: false,
       skipEmptyLines: true,
       complete: async (results) => {
-        try {
-          const parsedData: (Transaction | null)[] = parseTransactionData(results.data);
-
-          for (const transaction of parsedData) {
-            if (transaction) {
-              const transactionWithDefaults: Transaction = {
-                user_id: user?.id,
-                account_id: selectedAccount,
-                date: transaction.date,
-                description: transaction.description,
-                amount: transaction.amount,
-                notes: transaction.notes || "",
-                type: transaction.amount && transaction.amount > 0 ? "INCOME" : "EXPENSE",
-                category: transaction.category || "Uncategorized",
-                updated_at: new Date().toISOString(),
-              };
-
-              // Insert transaction into database
-              await insertTransaction(transactionWithDefaults);
-
-              // Update account balance
-              const accountToUpdate = accounts.find((acc) => acc.id === selectedAccount);
-              if (accountToUpdate && transaction.amount) {
-                const updatedAccount: Partial<Account> = {
-                  id: accountToUpdate.id,
-                  balance: (accountToUpdate.balance || 0) + transaction.amount,
-                  updated_at: new Date().toISOString(),
-                };
-                await updateAccount(updatedAccount);
-              }
+        const rows = results.data as string[][];
+  
+        const transactions: Transaction[] = rows.map((row, rowIndex) => {
+          const date = row[columnMapping.date] || "";
+          const description = row[columnMapping.description] || "";
+          let amount = 0;
+  
+          if (columnMapping.amount !== -1) {
+            const rawAmount = row[columnMapping.amount];
+            amount = parseFloat(rawAmount || "0");
+            if (isNaN(amount)) {
+              console.error(`Invalid amount at row ${rowIndex}:`, rawAmount);
+              amount = 0;
             }
-          }
-
-          setIsDialogOpen(false); // Close dialog
-          setFile(null); // Reset file
-          sessionStorage.setItem("showToast", "true");
-          window.location.reload(); // Reload the page
-        } catch (error) {
-          console.error("Error uploading transactions:", error);
-        } finally {
-          setIsLoading(false); // End loading state
+          } else if (columnMapping.income !== -1 || columnMapping.expense !== -1) {
+            // Use "Income - Expense" method if both 'income' and 'expense' are mapped
+            const rawIncome = row[columnMapping.income];
+            const rawExpense = row[columnMapping.expense];
+          
+            const income = parseFloat(rawIncome || "0");
+            const expense = parseFloat(rawExpense || "0");
+          
+            amount = (isNaN(income) ? 0 : income) - (isNaN(expense) ? 0 : expense);
+          } else {
+            console.error(
+              `No valid columns mapped for amount calculation at row ${rowIndex}. Ensure 'amount' or both 'income' and 'expense' are mapped.`
+            );
+            amount = 0;
+          }          
+  
+          return {
+            user_id: user?.id,
+            account_id: selectedAccount,
+            date: date,
+            description: description,
+            amount: amount,
+            notes: "",
+            type: amount > 0 ? "INCOME" : "EXPENSE",
+            category: "Uncategorized",
+            updated_at: new Date().toISOString(),
+          };
+        });
+  
+        for (const transaction of transactions) {
+          await insertTransaction(transaction);
         }
+  
+        setIsLoading(false);
+        setIsDialogOpen(false);
+        setFile(null);
+        setRawPreviewRow([]);
+        setColumnMapping({ date: -1, description: -1, amount: -1, income: -1, expense: -1 });
+        sessionStorage.setItem("showToast", "true");
+        window.location.reload();
       },
     });
   };
+  
 
   // Display toast on successful upload
   useEffect(() => {
@@ -116,7 +153,7 @@ export function UploadCsv() {
       </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Import Transactions</DialogTitle>
             <DialogDescription>
@@ -125,21 +162,24 @@ export function UploadCsv() {
           </DialogHeader>
 
           <div className={`space-y-4 ${isLoading ? "opacity-50 pointer-events-none" : ""}`}>
-            <select
-              className="border rounded p-2 text-sm w-full"
+            <Select
+              onValueChange={(value) => setSelectedAccount(value)}
               value={selectedAccount || ""}
-              onChange={(e) => setSelectedAccount(e.target.value)}
-              disabled={isLoading}
             >
-              <option value="" disabled>
-                Select an account
-              </option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.account_name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <span>
+                  {accounts.find((account) => account.id === selectedAccount)?.account_name ||
+                    "Select an Account"}
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {account.account_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <Button
               variant="secondary"
@@ -160,7 +200,76 @@ export function UploadCsv() {
               disabled={isLoading}
             />
 
-            {file && <p className="text-sm text-gray-600">Selected File: {file.name}</p>}
+            {file && (
+              <>
+                <p className="text-sm text-gray-600">Selected File: {file.name}</p>
+
+                {rawPreviewRow.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <h3 className="text-lg font-small mb-2">Preview Row</h3>
+                    <Table className="table-fixed border border-gray-300 w-full">
+                      <TableHeader>
+                        <TableRow>
+                          {rawPreviewRow.map((_, index) => (
+                            <TableCell key={index} className="font-medium border border-gray-300">
+                              Column {index + 1}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow>
+                          {rawPreviewRow.map((value, index) => (
+                            <TableCell key={index} className="border border-gray-300 truncate">
+                              {value}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+
+                <div>
+                  <h4 className="text-md font-medium">Map Columns</h4>
+                  <p className="text-sm text-gray-600">Please make sure to map fields ALL possible fields from your data.</p>
+                  {["date", "description", "amount", "income", "expense"].map((field) => (
+                    <div key={field} className="flex items-center mt-2">
+                      <span className="w-32 capitalize text-sm">{field}:</span>
+                      <Select
+                        onValueChange={(value) =>
+                          setColumnMapping({
+                            ...columnMapping,
+                            [field]: parseInt(value, 10), // Update mapping or set to -1 if unselected
+                          })
+                        }
+                        value={columnMapping[field] !== -1 ? String(columnMapping[field]) : ""}
+                      >
+                        <SelectTrigger className="w-full">
+                          <span>
+                            {columnMapping[field] !== -1
+                              ? `Column ${columnMapping[field] + 1}`
+                              : "Unselect"}
+                          </span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="-1">Unselect</SelectItem> {/* Option to unselect */}
+                          {rawPreviewRow.map((_, index) => (
+                            <SelectItem
+                              key={index}
+                              value={String(index)}
+                              disabled={Object.values(columnMapping).includes(index)} // Disable if already mapped
+                            >
+                              Column {index + 1}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter>
