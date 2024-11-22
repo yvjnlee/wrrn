@@ -1,3 +1,4 @@
+import React from "react";
 import Link from "next/link";
 import Hero from "@/components/hero";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -33,7 +34,7 @@ export default async function Index() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Dive into WRRN's features and tools designed to optimize your journey.
+                Dive into WRRN&apos;s features and tools designed to optimize your journey.
               </p>
             </CardContent>
             <CardFooter>

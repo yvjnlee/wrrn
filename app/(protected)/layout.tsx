@@ -1,3 +1,4 @@
+import React from "react";
 import { createClient } from "@/utils/supabase/server";
 
 export default async function Layout({

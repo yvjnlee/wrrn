@@ -1,13 +1,13 @@
 import { Transaction } from "../types";
 
-export const parseTransactionData = (data: any[]): Transaction[] => {
+export const parseTransactionData = (data: Transaction[]): Transaction[] => {
     return data
       .map((row) => {
         const transaction = Object.values(row);
   
         let date = "";
         let description = "";
-        let category = "Uncategorized";
+        const category = "Uncategorized";
         let amount = 0;
         let balance = 0;
   

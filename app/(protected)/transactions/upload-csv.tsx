@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState, useRef, ChangeEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +36,6 @@ export function UploadCsv() {
     income: -1,
     expense: -1,
   });
-  const [transactionMethod, setTransactionMethod] = useState<"amount" | "income-expense">("amount");
 
   useEffect(() => {
     const fetchUserAccounts = async () => {

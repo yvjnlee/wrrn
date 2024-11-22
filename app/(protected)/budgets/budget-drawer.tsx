@@ -70,7 +70,7 @@ export function BudgetDrawer({
         spent: Math.max((budget.spent || 0) + contribute, 0), // Ensure spent doesn't go below 0
       };
       try {
-        await updateBudget(budget.id, updatedBudget);
+        await updateBudget(updatedBudget);
         setIsDrawerOpen(null);
         alert("Budget updated successfully!");
         window.location.reload();
@@ -80,7 +80,7 @@ export function BudgetDrawer({
     }
   };
 
-  const { name, category, amount = 0, spent = 0, start_date, end_date } = formState;
+  const { name, amount = 0, spent = 0 } = formState;
 
   const remaining = useMemo(() => Math.max(amount - spent, 0), [amount, spent]);
   const percentageSpent = useMemo(() => {

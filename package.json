@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "eslint ./app ./components/custom ./lib ./utils"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.1",
@@ -39,15 +40,25 @@
     "vaul": "^1.1.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.15.0",
     "@types/node": "20.10.6",
     "@types/papaparse": "^5.3.15",
     "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.18",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "globals": "^15.12.0",
     "mini-css-extract-plugin": "^2.9.2",
     "postcss": "8.4.33",
     "tailwind-merge": "^2.5.2",
     "tailwindcss": "3.4.1",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "5.3.3"
+    "typescript": "5.3.3",
+    "typescript-eslint": "^8.15.0"
   }
 }

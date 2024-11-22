@@ -142,7 +142,8 @@ export const updateBudget = async (updatedFields: Partial<Budget>) => {
     const { error } = await supabase
         .from("budgets")
         .update(encryptedFields)
-        .eq("id", user?.id);
+        .eq("id", updatedFields.id)
+        .eq("user_id", user?.id);
 
     if (error) {
         console.error("Error updating budget:", error.message);

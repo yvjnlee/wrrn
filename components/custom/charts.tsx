@@ -92,7 +92,7 @@ export function BaseAreaChart({ data, config, title, description }: DataTrendCha
   const filteredData = data.filter((item) => {
     const date = new Date(item.date);
     const referenceDate = new Date("2024-06-30");
-    let daysToSubtract = timeRange === "30d" ? 30 : timeRange === "7d" ? 7 : 90;
+    const daysToSubtract = timeRange === "30d" ? 30 : timeRange === "7d" ? 7 : 90;
     const startDate = new Date(referenceDate);
     startDate.setDate(startDate.getDate() - daysToSubtract);
     return date >= startDate;

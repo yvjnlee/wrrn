@@ -1,3 +1,4 @@
+import React from "react";
 import { getTransactions } from "./actions";
 import { HeaderTransaction } from "./header-transaction";
 import { TransactionTable } from "./transaction-table";
