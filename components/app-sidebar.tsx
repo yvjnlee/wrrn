@@ -1,3 +1,4 @@
+import React from "react"
 import { ChartCandlestick, Handshake, Home, Settings, UserCog, Wallet } from "lucide-react"
 
 import {
@@ -7,7 +8,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
