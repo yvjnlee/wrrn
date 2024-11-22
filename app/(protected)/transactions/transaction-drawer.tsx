@@ -31,7 +31,7 @@ export function TransactionDrawer({
 
   const handleSaveChanges = async () => {
     if (transaction?.id) {
-      await updateTransaction(transaction.id, { ...transaction, notes });
+      await updateTransaction({ ...transaction, notes });
       setIsDrawerOpen(null); // Close the drawer after saving
       window.location.reload();
     }

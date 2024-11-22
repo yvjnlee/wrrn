@@ -4,7 +4,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ./app ./components/custom ./lib ./utils"
+    "lint": "eslint ./app ./components ./lib ./utils"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.1",
