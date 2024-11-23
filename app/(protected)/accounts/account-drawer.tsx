@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Account, Budget, Transaction } from "../types";
 import { BasicDrawer } from "@/components/custom/drawers";
 import { BudgetDrawer } from "../budgets/budget-drawer";
-import { updateAccount } from "./actions";
+import { deleteAccount, updateAccount } from "./actions";
 import { TransactionTable } from "../transactions/transaction-table";
 
 interface AccountDrawerProps {
   isDrawerOpen: boolean;
+  setIsDrawerOpen: (isOpen: boolean) => void;
   onClose: () => void;
   account: Account | null;
   budgets: Budget[] | null;
@@ -20,6 +21,7 @@ interface AccountDrawerProps {
 
 export function AccountDrawer({
   isDrawerOpen,
+  setIsDrawerOpen,
   onClose,
   account,
   budgets = [],
@@ -58,12 +60,21 @@ export function AccountDrawer({
     }
   };
 
+  const handleDelete = async () => {
+    if (account?.id) {
+      await deleteAccount(account.id);
+      setIsDrawerOpen(false); // Close the drawer after deleting
+      window.location.reload();
+    }
+  };
+
   return (
     <>
       <BasicDrawer
         isOpen={isDrawerOpen}
         onClose={onClose}
         onSave={handleSaveChanges}
+        onDelete={handleDelete}
         title={formState.account_name || "Unnamed Account"}
         description={formState.account_type || "Unknown Type"}
       >

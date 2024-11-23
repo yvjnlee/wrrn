@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, ChangeEvent, useMemo } from "react";
 import { Account, Budget } from "../types";
-import { updateBudget } from "./actions";
+import { deleteBudget, updateBudget } from "./actions";
 import { Input } from "@/components/ui/input";
 import { BasicDrawer } from "@/components/custom/drawers";
 import { Label } from "@/components/ui/label";
@@ -80,6 +80,14 @@ export function BudgetDrawer({
     }
   };
 
+  const handleDelete = async () => {
+    if (budget?.id) {
+      await deleteBudget(budget.id);
+      setIsDrawerOpen(null); // Close the drawer after deleting
+      window.location.reload();
+    }
+  };
+
   const { name, amount = 0, spent = 0 } = formState;
 
   const remaining = useMemo(() => Math.max(amount - spent, 0), [amount, spent]);
@@ -97,6 +105,7 @@ export function BudgetDrawer({
     <BasicDrawer
       isOpen={!!isDrawerOpen}
       onClose={() => setIsDrawerOpen(null)}
+      onDelete={handleDelete}
       title={`Edit ${name || "Budget"}`}
       description="Modify the budget details as needed."
       onSave={handleSaveChanges}
@@ -161,26 +170,45 @@ export function BudgetDrawer({
               onChange={handleChange}
             />
           </div>
+          
           <div>
             <Label className="text-sm font-semibold">Start Date</Label>
-            <Input
-              name="start_date"
-              placeholder="Start Date"
-              type="date"
-              value={formState?.start_date || ""}
-              onChange={handleChange}
-            />
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                {formState?.start_date
+                  ? new Date(formState.start_date).toLocaleDateString()
+                  : "Not Set"}
+              </span>
+              <Input
+                name="start_date"
+                placeholder="Start Date"
+                type="date"
+                value={formState?.start_date || ""}
+                onChange={handleChange}
+                className="w-auto"
+              />
+            </div>
           </div>
+
           <div>
             <Label className="text-sm font-semibold">End Date</Label>
-            <Input
-              name="end_date"
-              placeholder="End Date"
-              type="date"
-              value={formState?.end_date || ""}
-              onChange={handleChange}
-            />
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                {formState?.end_date
+                  ? new Date(formState.end_date).toLocaleDateString()
+                  : "Not Set"}
+              </span>
+              <Input
+                name="end_date"
+                placeholder="End Date"
+                type="date"
+                value={formState?.end_date || ""}
+                onChange={handleChange}
+                className="w-auto"
+              />
+            </div>
           </div>
+
           <div>
             <Label className="text-sm font-semibold">Allocate Funds</Label>
             <Input

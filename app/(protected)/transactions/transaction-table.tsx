@@ -14,7 +14,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -34,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import { Transaction } from "../types";
 import { TransactionDrawer } from "./transaction-drawer";
+import { deleteTransaction } from "./actions";
 
 interface TransactionTableProps {
   data: Transaction[] | null;
@@ -43,8 +43,22 @@ export function TransactionTable({ data }: TransactionTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isDrawerOpen, setIsDrawerOpen] = React.useState<string | null>(null);
+
+  const handleDeleteSelected = async () => {
+    const selectedRowIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
+    const selectedTransactions = selectedRowIds.map((id) =>
+      table.getRow(id)?.original?.id
+    );
+  
+    if (selectedTransactions.length > 0) {
+      for (const transaction of selectedTransactions) { // Corrected loop
+        await deleteTransaction(transaction); // Call the delete function
+      }
+      window.location.reload(); // Reload to reflect the changes
+    }
+  };  
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -178,29 +192,42 @@ export function TransactionTable({ data }: TransactionTableProps) {
             }
             className="max-w-sm"
           />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns <ChevronDown />
+
+          {/* Container for Columns and Delete buttons */}
+          <div className="flex items-center space-x-2 ml-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">Columns <ChevronDown /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {Object.keys(rowSelection).length > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteSelected}
+              >
+                Delete Selected
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            )}
+          </div>
         </div>
+
         <div className="rounded-md border">
           <Table>
             <TableHeader>

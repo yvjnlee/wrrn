@@ -108,6 +108,7 @@ export function AccountItem({ account }: AccountItemProps) {
       {/* Account Drawer */}
       <AccountDrawer
         isDrawerOpen={isDrawerOpen}
+        setIsDrawerOpen={setIsDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         account={account}
         budgets={budgets}
