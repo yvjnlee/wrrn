@@ -72,7 +72,6 @@ export function BudgetDrawer({
       try {
         await updateBudget(updatedBudget);
         setIsDrawerOpen(null);
-        alert("Budget updated successfully!");
         window.location.reload();
       } catch (error) {
         console.error("Failed to save changes:", error);

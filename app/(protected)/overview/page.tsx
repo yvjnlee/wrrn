@@ -14,9 +14,15 @@ export default async function OverviewPage() {
     const totalExpense: number = 0;
     const remainingBudget: number = 0;
     // const spendingByCategory = {};
-    const recentTransactions: Transaction[] = await getTransactions() as Transaction[];
-
+    const transactions: Transaction[] | null = await getTransactions();
     const accounts: Account[] | null = await getAccounts();
+
+    // go thru transactions to get the month's data
+    // totalIncome, totalExpenses
+    // need to think about how budgeted money works as well as projected
+    // remaining budget will be derived from the difference in the above
+
+    const recentTransactions: Transaction[] = (transactions) ? transactions: [];
 
     console.log(accounts)
 

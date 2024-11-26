@@ -51,7 +51,6 @@ export function AccountDrawer({
     if (formState?.id) {
       try {
         await updateAccount(formState); // Save changes
-        alert("Account updated successfully!");
         onClose(); // Close the drawer
         window.location.reload(); // Reload the page to fetch updated data
       } catch (error) {
