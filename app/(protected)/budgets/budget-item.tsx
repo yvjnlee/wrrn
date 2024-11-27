@@ -39,6 +39,19 @@ export function BudgetItem({ budget }: BudgetItemProps) {
     return Math.min((spent / amount) * 100, 100).toFixed(1);
   }, [amount, spent]);
 
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+  
+    const date = new Date(dateString);
+  
+    // Get the parts of the date
+    const year = date.getFullYear();
+    const month = date.toLocaleString("default", { month: "short" }); // Full month name
+    const day = date.getDate();
+  
+    return `${month} ${day}, ${year}`;
+  };
+
   // Chart data for BasePieChart
   const chartData = [
     { name: "Spent", value: spent, fillColor: "green" },
@@ -58,7 +71,7 @@ export function BudgetItem({ budget }: BudgetItemProps) {
               <Badge variant="outline">{category || "Uncategorized"}</Badge>
             </div>
             <CardDescription className="text-xs text-muted-foreground">
-              {start_date || "N/A"} - {end_date || "N/A"}
+              {formatDate(start_date)} - {formatDate(end_date)}
             </CardDescription>
           </CardHeader>
 

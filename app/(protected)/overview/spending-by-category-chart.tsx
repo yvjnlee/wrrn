@@ -10,7 +10,7 @@ export function SpendingByCategoryCard({ data }: { data: { name: string; value: 
         <CardDescription>This Month</CardDescription>
       </CardHeader>
       <CardContent>
-        <BasePieChart data={data} title="Category Breakdown" />
+        <BasePieChart data={data} />
       </CardContent>
     </Card>
   );

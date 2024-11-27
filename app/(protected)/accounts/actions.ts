@@ -69,8 +69,6 @@ export const insertAccount = async (newAccount: Account) => {
         data: { user },
     } = await supabase.auth.getUser();
 
-    console.log(newAccount)
-
     // Encrypt sensitive fields
     const encryptedAccount = {
         ...newAccount,

@@ -38,13 +38,18 @@ export function AccountDrawer({
   const remainingFunds = (account.balance || 0) - (totalSpent || 0);
 
   // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormState((prev) => ({
-      ...prev,
-      [name]: name === "balance" ? (value === "" ? 0 : parseFloat(value)) : value,
-    }));
-  };  
+  const handleInputChange = (field: string, value: string) => {
+    setFormState((prev) => {
+      if (field === "balance") {
+        if (!/^[-+]?[0-9]*\.?[0-9]*$/.test(value)) {
+          return prev;
+        }
+      }
+  
+      return { ...prev, [field]: value };
+    });
+  };
+  
 
   // Save changes to the account
   const handleSaveChanges = async () => {
@@ -86,7 +91,7 @@ export function AccountDrawer({
                 <Input
                   name="account_name"
                   value={formState.account_name || ""}
-                  onChange={handleChange}
+                  onChange={(e) => handleInputChange("account_name", e.target.value)}
                   className="bg-muted-foreground/10 border"
                 />
               </div>
@@ -95,7 +100,7 @@ export function AccountDrawer({
                 <Input
                   name="account_type"
                   value={formState.account_type || "Unknown Type"}
-                  onChange={handleChange}
+                  onChange={(e) => handleInputChange("account_type", e.target.value)}
                   className="bg-muted-foreground/10 border"
                 />
               </div>
@@ -103,8 +108,9 @@ export function AccountDrawer({
                 <Label className="text-sm font-semibold">Balance</Label>
                 <Input
                   name="balance"
-                  value={formState.balance?.toString() || "0.00"}
-                  onChange={handleChange}
+                  type="text"
+                  value={formState.balance?.toString() || ""}
+                  onChange={(e) => handleInputChange("balance", e.target.value)}
                   className="bg-muted-foreground/10 border"
                 />
               </div>
@@ -114,6 +120,16 @@ export function AccountDrawer({
                   value={totalBudgeted?.toLocaleString() || "0.00"}
                   readOnly
                   className="bg-muted-foreground/10 border"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Total Spent</Label>
+                <Input
+                  name="spent"
+                  type="text"
+                  value={totalSpent || ""}
+                  className="bg-muted-foreground/10 border"
+                  readOnly
                 />
               </div>
               <div>

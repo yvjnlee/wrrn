@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 
 export function ExpenseCard({ totalExpense }: { totalExpense: number }) {
   return (
-    <Card className="border border-red-500">
+    <Card>
       <CardHeader>
         <CardTitle className="text-red-500">Total Expenses</CardTitle>
         <CardDescription>This Month</CardDescription>

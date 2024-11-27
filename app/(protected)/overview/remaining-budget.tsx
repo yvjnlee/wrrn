@@ -6,8 +6,8 @@ export function RemainingBudgetCard({ remaining }: { remaining: number }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Remaining Budget</CardTitle>
-        <CardDescription>This Month</CardDescription>
+        <CardTitle>Remaining Balance</CardTitle>
+        <CardDescription>All Time</CardDescription>
       </CardHeader>
       <CardContent>
         <p className={`text-2xl font-semibold ${textColor}`}>

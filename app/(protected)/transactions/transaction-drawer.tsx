@@ -36,8 +36,15 @@ export function TransactionDrawer({
   };
 
   const handleSaveChanges = async () => {
-    if (transaction?.id) {
-      await updateTransaction({ ...transaction, notes });
+    if (transaction) {
+      const transactionType = transaction.amount && transaction.amount > 0 ? "INCOME" : "EXPENSE";
+
+      await updateTransaction({
+        ...transaction,
+        notes,
+        type: transactionType, // Set the type dynamically
+      });
+
       setIsDrawerOpen(null); // Close the drawer after saving
       window.location.reload();
     }
@@ -92,8 +99,8 @@ export function TransactionDrawer({
               <p className="text-sm font-semibold">Type</p>
               <Input
                 type="text"
-                value={transaction.type || ""}
-                onChange={(e) => handleInputChange("type", e.target.value)}
+                value={transaction.type}
+                disabled
               />
             </div>
             <div>

@@ -26,7 +26,7 @@ export function BudgetDrawer({
   const [selectedAccount, setSelectedAccount] = useState<string | null>(
     budget.account_id || null
   );
-  const [contribute, setContribute] = useState<number>(0);
+  const [contribute, setContribute] = useState<string>('');
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -43,12 +43,17 @@ export function BudgetDrawer({
     }
   }, [budget?.user_id]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormState((prev) => ({
-      ...prev,
-      [name]: name === "amount" ? parseFloat(value) : value,
-    }));
+  const handleInputChange = (field: string, value: string) => {
+    setFormState((prev) => {
+      if (field === "amount") {
+        // Allow empty string or positive numbers without leading zeros
+        if (value !== "" && !/^(0|[1-9][0-9]*)(\.[0-9]*)?$/.test(value)) {
+          return prev; // Ignore invalid input
+        }
+      }
+  
+      return { ...prev, [field]: value };
+    });
   };
 
   const handleAccountChange = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -60,14 +65,23 @@ export function BudgetDrawer({
   };
 
   const handleContributeChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setContribute(parseFloat(e.target.value) || 0);
+    const { value } = e.target;
+  
+    // Validate numeric input using the regex
+    if (!/^[-+]?[0-9]*\.?[0-9]*$/.test(value)) {
+      return; // Ignore invalid input
+    }
+  
+    // Parse and set the contribute value, default to 0 if empty
+    setContribute(value);
   };
+  
 
   const handleSaveChanges = async () => {
     if (budget?.id) {
       const updatedBudget = {
         ...formState,
-        spent: Math.max((budget.spent || 0) + contribute, 0), // Ensure spent doesn't go below 0
+        spent: Math.max((budget.spent || 0) + Number(contribute), 0), // Ensure spent doesn't go below 0
       };
       try {
         await updateBudget(updatedBudget);
@@ -129,7 +143,7 @@ export function BudgetDrawer({
               name="name"
               placeholder="Budget Name"
               value={formState?.name || ""}
-              onChange={handleChange}
+              onChange={(e) => handleInputChange("name", e.target.value)}
             />
           </div>
           <div>
@@ -156,18 +170,40 @@ export function BudgetDrawer({
               name="category"
               placeholder="Category"
               value={formState?.category || ""}
-              onChange={handleChange}
+              onChange={(e) => handleInputChange("category", e.target.value)}
             />
           </div>
-          <div>
-            <Label className="text-sm font-semibold">Total Amount</Label>
-            <Input
-              name="amount"
-              placeholder="Amount"
-              type="number"
-              value={formState?.amount?.toString() || ""}
-              onChange={handleChange}
-            />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-semibold">Goal</Label>
+              <Input
+                name="amount"
+                placeholder="Amount"
+                type="text"
+                value={formState?.amount?.toString() || ""}
+                onChange={(e) => handleInputChange("amount", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">Spent</Label>
+              <Input
+                name="spent"
+                type="number"
+                value={budget.spent || 0}
+                disabled
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">Allocate Funds</Label>
+              <Input
+                name="contribute"
+                type="text"
+                placeholder="0"
+                value={contribute.toString() || ""}
+                onChange={handleContributeChange}
+              />
+            </div>
           </div>
           
           <div>
@@ -183,7 +219,7 @@ export function BudgetDrawer({
                 placeholder="Start Date"
                 type="date"
                 value={formState?.start_date || ""}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange("start_date", e.target.value)}
                 className="w-auto"
               />
             </div>
@@ -202,21 +238,10 @@ export function BudgetDrawer({
                 placeholder="End Date"
                 type="date"
                 value={formState?.end_date || ""}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange("end_date", e.target.value)}
                 className="w-auto"
               />
             </div>
-          </div>
-
-          <div>
-            <Label className="text-sm font-semibold">Allocate Funds</Label>
-            <Input
-              name="contribute"
-              placeholder="Allocate Amount"
-              type="text"
-              value={contribute.toString()}
-              onChange={handleContributeChange}
-            />
           </div>
         </div>
       </div>
