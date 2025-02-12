@@ -3,7 +3,7 @@ import Link from "next/link";
 import Hero from "@/components/hero";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Instagram, Linkedin, Twitter, Youtube } from "lucide-react"; // icons for social media
-import Demo from "@/components/demo";
+// import Demo from "@/components/demo";
 
 export default async function Index() {
   return (
@@ -57,9 +57,9 @@ export default async function Index() {
           </Card>
         </section>
 
-        <section className="mt-12 text-center">
+        {/* <section className="mt-12 text-center">
           <Demo />
-        </section>
+        </section> */}
 
         {/* Social Media Section */}
         <section className="mt-12 text-center">
